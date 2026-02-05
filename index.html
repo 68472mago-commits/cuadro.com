@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Herramienta Interactiva - Cuadro Sinóptico</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            height: 100vh;
+            padding: 10px;
+            overflow: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .header {
+            background-color: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            border-left: 4px solid #3498db;
+            flex-shrink: 0;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .app-container {
+            display: flex;
+            gap: 12px;
+            flex: 1;
+            min-height: 0;
+        }
+        
+        /* Panel de elementos */
+        .elements-panel {
+            background-color: white;
+            width: 230px;
+            border-radius: 10px;
+            padding: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        
+        .panel-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #ecf0f1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .panel-title i {
+            color: #3498db;
+        }
+        
+        .element-category {
+            margin-bottom: 15px;
+        }
+        
+        .category-title {
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .draggable-element {
+            background-color: #f8f9fa;
+            padding: 8px 10px;
+            border-radius: 5px;
+            margin-bottom: 6px;
+            cursor: grab;
+            border: 2px dashed #bdc3c7;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        
+        .draggable-element:hover {
+            background-color: #e8f4fc;
+            border-color: #3498db;
+        }
+        
+        .draggable-element:active {
+            cursor: grabbing;
+        }
+        
+        .element-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 3px;
+            font-size: 0.9rem;
+        }
+        
+        .element-desc {
+            font-size: 0.75rem;
+            color: #7f8c8d;
+        }
+        
+        /* Área de trabajo */
+        .workspace {
+            flex: 1;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .workspace-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #ecf0f1;
+            flex-shrink: 0;
+        }
+        
+        .workspace-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .workspace-title i {
+            color: #2ecc71;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .btn {
+            padding: 6px 12px;
+            border-radius: 5px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+        }
+        
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-success {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background-color: #27ae60;
+        }
+        
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: 10px;
+        }
+        
+        .zoom-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #f8f9fa;
+            border: 1px solid #bdc3c7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .zoom-btn:hover {
+            background-color: #ecf0f1;
+        }
+        
+        .zoom-level {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        /* CONTENEDOR CON ZOOM Y PAN */
+        .workspace-area {
+            flex: 1;
+            border: 2px dashed #ecf0f1;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+            background-color: #f0f2f5;
+            cursor: grab;
+        }
+        
+        .workspace-area:active {
+            cursor: grabbing;
+        }
+        
+        /* LIENZO GRANDE */
+        .canvas-container {
+            position: absolute;
+            width: 3000px;
+            height: 2000px;
+            background-color: white;
+            background-image: 
+                linear-gradient(rgba(220, 220, 220, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(220, 220, 220, 0.3) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform-origin: 0 0;
+            transition: transform 0.1s ease-out;
+        }
+        
+        /* TODOS los elementos son arrastrables */
+        .draggable-box {
+            position: absolute;
+            cursor: move;
+            user-select: none;
+            z-index: 10;
+            transition: box-shadow 0.2s, transform 0.1s;
+            touch-action: none;
+            min-width: 160px;
+            max-width: 250px;
+        }
+        
+        .draggable-box:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+        }
+        
+        .draggable-box.selected {
+            box-shadow: 0 0 0 3px #3498db, 0 6px 20px rgba(0, 0, 0, 0.15);
+            z-index: 20;
+        }
+        
+        .draggable-box.dragging {
+            opacity: 0.8;
+            cursor: grabbing;
+        }
+        
+        /* TEMA CENTRAL - AZUL */
+        .central-topic {
+            background-color: #3498db;
+            color: white;
+            padding: 18px 22px;
+            border-radius: 8px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-align: center;
+            border: 3px solid #2980b9;
+        }
+        
+        /* RAMAS PRINCIPALES - VERDE */
+        .branch-title {
+            background-color: #2ecc71;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 7px;
+            font-size: 1rem;
+            font-weight: bold;
+            text-align: center;
+            border: 2px solid #27ae60;
+        }
+        
+        /* SUB-RAMAS - BLANCO CON FRANJA LATERAL */
+        .sub-branch {
+            background-color: #f8f9fa;
+            padding: 10px 12px;
+            border-radius: 5px;
+            border-left: 5px solid #9b59b6;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        
+        .sub-branch-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 4px;
+            font-size: 0.95rem;
+        }
+        
+        .sub-branch-desc {
+            color: #7f8c8d;
+            font-size: 0.8rem;
+        }
+        
+        /* Estilos para texto dentro de los elementos */
+        .element-content {
+            text-align: center;
+        }
+        
+        .main-title {
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+        
+        .main-desc {
+            font-size: 0.8rem;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        
+        /* MODAL PARA EDITAR TEXTO (NUEVO) */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            width: 450px;
+            max-width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 2px solid #ecf0f1;
+            font-size: 0.9rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-input:focus, .form-textarea:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        .form-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        /* Información de ayuda */
+        .help-info {
+            background-color: #fff9e6;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 15px;
+            border-left: 3px solid #f1c40f;
+            font-size: 0.8rem;
+            color: #7f8c8d;
+        }
+        
+        .help-title {
+            font-weight: bold;
+            color: #f39c12;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .status-bar {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        /* LOADER para descarga */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            flex-direction: column;
+            color: white;
+        }
+        
+        .loader-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-project-diagram"></i> Herramienta Cuadro Sinóptico y mapa consectual</h1>
+            <p class="subtitle">Arrastra elementos y muévete por el lienzo. Haz doble clic para editar texto.</p>
+        </div>
+        
+        <div class="app-container">
+            <!-- Panel de elementos arrastrables -->
+            <div class="elements-panel">
+                <div class="panel-title">
+                    <i class="fas fa-shapes"></i> Elementos
+                </div>
+                
+                <div class="element-category">
+                    <div class="category-title">Temas Centrales</div>
+                    <div class="draggable-element" data-type="central-topic" draggable="true">
+                        <div class="element-title">Tema Central</div>
+                        <div class="element-desc">Azul - Tema principal del cuadro</div>
+                    </div>
+                </div>
+                
+                <div class="element-category">
+                    <div class="category-title">Ramas Principales</div>
+                    <div class="draggable-element" data-type="branch" draggable="true">
+                        <div class="element-title">Rama Principal</div>
+                        <div class="element-desc">Verde - Categoría principal</div>
+                    </div>
+                </div>
+                
+                <div class="element-category">
+                    <div class="category-title">Sub-Ramas</div>
+                    <div class="draggable-element" data-type="sub-branch" draggable="true">
+                        <div class="element-title">Sub-Rama</div>
+                        <div class="element-desc">Blanco - Elemento detallado</div>
+                    </div>
+                </div>
+                
+                <div class="help-info">
+                    <div class="help-title"><i class="fas fa-info-circle"></i> Instrucciones</div>
+                    <p>1. Arrastra elementos al lienzo</p>
+                    <p>2. Doble clic para editar texto</p>
+                    <p>3. Mueve el fondo con click + arrastre</p>
+                    <p>4. Descarga tu cuadro completo</p>
+                </div>
+            </div>
+            
+            <!-- Área de trabajo principal -->
+            <div class="workspace">
+                <div class="workspace-header">
+                    <div class="workspace-title">
+                        <i class="fas fa-pencil-ruler"></i> Lienzo de Trabajo
+                    </div>
+                    <div class="controls">
+                        <button class="btn btn-danger" id="clearBtn">
+                            <i class="fas fa-trash"></i> Limpiar
+                        </button>
+                        <div class="zoom-controls">
+                            <button class="zoom-btn" id="zoomOutBtn">-</button>
+                            <span class="zoom-level" id="zoomLevel">100%</span>
+                            <button class="zoom-btn" id="zoomInBtn">+</button>
+                        </div>
+                        <button class="btn btn-success" id="downloadBtn">
+                            <i class="fas fa-download"></i> Descargar
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- ÁREA CON ZOOM Y PAN -->
+                <div class="workspace-area" id="workspaceArea">
+                    <div class="canvas-container" id="canvasContainer">
+                        <!-- Aquí se generarán los elementos arrastrables -->
+                    </div>
+                    <div class="status-bar" id="statusBar">Zoom: 100%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- MODAL PARA EDITAR TEXTO (NUEVO) -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">Editar Elemento</div>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <form id="editForm">
+                <div class="form-group">
+                    <label class="form-label" for="editTitle">Título</label>
+                    <input type="text" class="form-input" id="editTitle" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="editDescription">Descripción</label>
+                    <textarea class="form-textarea" id="editDescription"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-save"></i> Guardar Cambios
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal para opciones de descarga -->
+    <div class="modal" id="downloadModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fas fa-download"></i> Descargar Cuadro</div>
+                <button class="close-modal" id="closeDownloadModal">&times;</button>
+            </div>
+            <div style="margin: 15px 0;">
+                <p>Selecciona formato y tamaño:</p>
+                
+                <div class="form-group" style="margin-top: 15px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px;">Formato:</label>
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <button class="btn btn-primary" id="downloadPNG">
+                            <i class="fas fa-image"></i> PNG (Alta calidad)
+                        </button>
+                        <button class="btn btn-success" id="downloadPDF">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-top: 15px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 8px;">Tamaño:</label>
+                    <select style="width: 100%; padding: 8px 12px; border-radius: 5px; border: 2px solid #ecf0f1;" id="downloadSize">
+                        <option value="normal">Normal (para pantalla)</option>
+                        <option value="large">Grande (para impresión)</option>
+                        <option value="xlarge">Extra grande (alta resolución)</option>
+                    </select>
+                </div>
+                
+                <div class="help-info">
+                    <div class="help-title"><i class="fas fa-lightbulb"></i> Recomendación</div>
+                    <p>Selecciona "Grande" o "Extra grande" para mejor legibilidad en impresión.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loader para descarga -->
+    <div class="loader" id="loader">
+        <div class="loader-spinner"></div>
+        <div>Generando imagen, por favor espera...</div>
+    </div>
+    
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Variables globales
+            let draggedElement = null;
+            let currentEditingElement = null; // NUEVO: para editar texto
+            
+            // Variables para ZOOM y PAN
+            let scale = 1;
+            let offsetX = 0;
+            let offsetY = 0;
+            let isPanning = false;
+            let startX, startY;
+            let initialOffsetX, initialOffsetY;
+            
+            // Referencias a elementos del DOM
+            const canvasContainer = document.getElementById('canvasContainer');
+            const workspaceArea = document.getElementById('workspaceArea');
+            const statusBar = document.getElementById('statusBar');
+            const zoomLevel = document.getElementById('zoomLevel');
+            const downloadModal = document.getElementById('downloadModal');
+            const editModal = document.getElementById('editModal'); // NUEVO
+            const loader = document.getElementById('loader');
+            
+            // Inicializar
+            initDragAndDrop();
+            initZoomAndPan();
+            setupEventListeners();
+            
+            // Agregar contenido de ejemplo inicial
+            setTimeout(addExampleContent, 500);
+            
+            // Función para inicializar arrastrar y soltar
+            function initDragAndDrop() {
+                // Eventos para elementos arrastrables del panel
+                document.querySelectorAll('.draggable-element').forEach(element => {
+                    element.addEventListener('dragstart', handleDragStart);
+                    element.addEventListener('dragend', handleDragEnd);
+                });
+                
+                // Eventos para el área de trabajo (para soltar)
+                workspaceArea.addEventListener('dragover', handleDragOver);
+                workspaceArea.addEventListener('dragenter', handleDragEnter);
+                workspaceArea.addEventListener('dragleave', handleDragLeave);
+                workspaceArea.addEventListener('drop', handleDrop);
+            }
+            
+            // Función para inicializar ZOOM y PAN
+            function initZoomAndPan() {
+                // Configurar eventos para PAN (arrastrar el fondo)
+                workspaceArea.addEventListener('mousedown', startPanning);
+                document.addEventListener('mousemove', doPanning);
+                document.addEventListener('mouseup', stopPanning);
+                
+                // Configurar eventos para ZOOM (rueda del mouse)
+                workspaceArea.addEventListener('wheel', handleZoom, { passive: false });
+                
+                // Botones de zoom
+                document.getElementById('zoomInBtn').addEventListener('click', () => changeZoom(0.1));
+                document.getElementById('zoomOutBtn').addEventListener('click', () => changeZoom(-0.1));
+                
+                // Actualizar vista inicial
+                updateCanvasTransform();
+                updateStatusBar();
+            }
+            
+            // Función para configurar event listeners
+            function setupEventListeners() {
+                // Botones de control
+                document.getElementById('clearBtn').addEventListener('click', clearWorkspace);
+                document.getElementById('downloadBtn').addEventListener('click', showDownloadModal);
+                document.getElementById('closeModal').addEventListener('click', closeEditModal); // NUEVO
+                document.getElementById('closeDownloadModal').addEventListener('click', closeDownloadModal);
+                document.getElementById('downloadPNG').addEventListener('click', () => downloadDiagram('png'));
+                document.getElementById('downloadPDF').addEventListener('click', () => downloadDiagram('pdf'));
+                
+                // Formulario para editar texto (NUEVO)
+                document.getElementById('editForm').addEventListener('submit', saveElementChanges);
+            }
+            
+            // ========== MANEJADORES DE ARRASTRE Y SOLTADO ==========
+            function handleDragStart(e) {
+                draggedElement = this;
+                this.classList.add('dragging');
+                
+                const elementType = this.getAttribute('data-type');
+                let content = '';
+                
+                const title = this.querySelector('.element-title').textContent;
+                const desc = this.querySelector('.element-desc').textContent;
+                content = JSON.stringify({title, desc, type: elementType});
+                
+                e.dataTransfer.setData('element-type', elementType);
+                e.dataTransfer.setData('element-content', content);
+                e.dataTransfer.effectAllowed = 'copy';
+            }
+            
+            function handleDragEnd() {
+                this.classList.remove('dragging');
+                draggedElement = null;
+            }
+            
+            function handleDragOver(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+            }
+            
+            function handleDragEnter(e) {
+                e.preventDefault();
+            }
+            
+            function handleDragLeave() {
+                // No hacer nada
+            }
+            
+            function handleDrop(e) {
+                e.preventDefault();
+                
+                // Obtener datos del elemento arrastrado
+                const elementType = e.dataTransfer.getData('element-type');
+                const elementContent = e.dataTransfer.getData('element-content');
+                
+                if (!elementType) return;
+                
+                // Calcular posición en el lienzo (teniendo en cuenta zoom y pan)
+                const rect = canvasContainer.getBoundingClientRect();
+                
+                // Convertir coordenadas de pantalla a coordenadas del lienzo
+                const x = (e.clientX - rect.left - offsetX) / scale;
+                const y = (e.clientY - rect.top - offsetY) / scale;
+                
+                // Crear elemento en la posición soltada
+                createWorkspaceElement(elementType, JSON.parse(elementContent), x, y);
+            }
+            
+            // ========== FUNCIONES DE ZOOM Y PAN ==========
+            function startPanning(e) {
+                // Solo iniciar pan si estamos haciendo clic en el fondo
+                if (e.target === workspaceArea || e.target === canvasContainer) {
+                    isPanning = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    initialOffsetX = offsetX;
+                    initialOffsetY = offsetY;
+                    workspaceArea.style.cursor = 'grabbing';
+                }
+            }
+            
+            function doPanning(e) {
+                if (!isPanning) return;
+                
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                
+                offsetX = initialOffsetX + dx;
+                offsetY = initialOffsetY + dy;
+                
+                updateCanvasTransform();
+                updateStatusBar();
+            }
+            
+            function stopPanning() {
+                isPanning = false;
+                workspaceArea.style.cursor = 'grab';
+            }
+            
+            function handleZoom(e) {
+                e.preventDefault();
+                
+                const zoomIntensity = 0.1;
+                const delta = e.deltaY > 0 ? -zoomIntensity : zoomIntensity;
+                
+                // Calcular zoom relativo al cursor
+                const rect = workspaceArea.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                
+                // Coordenadas del mouse en el espacio del lienzo
+                const canvasX = (mouseX - offsetX) / scale;
+                const canvasY = (mouseY - offsetY) / scale;
+                
+                // Aplicar zoom
+                const newScale = Math.max(0.1, Math.min(3, scale + delta));
+                
+                if (newScale !== scale) {
+                    // Ajustar offset para zoom en el cursor
+                    offsetX = mouseX - canvasX * newScale;
+                    offsetY = mouseY - canvasY * newScale;
+                    
+                    scale = newScale;
+                    updateCanvasTransform();
+                    updateStatusBar();
+                }
+            }
+            
+            function changeZoom(delta) {
+                const newScale = Math.max(0.1, Math.min(3, scale + delta));
+                
+                if (newScale !== scale) {
+                    // Zoom al centro
+                    const rect = workspaceArea.getBoundingClientRect();
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    const canvasX = (centerX - offsetX) / scale;
+                    const canvasY = (centerY - offsetY) / scale;
+                    
+                    offsetX = centerX - canvasX * newScale;
+                    offsetY = centerY - canvasY * newScale;
+                    
+                    scale = newScale;
+                    updateCanvasTransform();
+                    updateStatusBar();
+                }
+            }
+            
+            function updateCanvasTransform() {
+                canvasContainer.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+                zoomLevel.textContent = `${Math.round(scale * 100)}%`;
+            }
+            
+            function updateStatusBar() {
+                statusBar.textContent = `Zoom: ${Math.round(scale * 100)}%`;
+            }
+            
+            // ========== FUNCIONES PARA ELEMENTOS ==========
+            function createWorkspaceElement(type, content, x, y) {
+                let newElement;
+                
+                // CREAR ELEMENTO CON ESTILO CORRECTO SEGÚN SU TIPO
+                if (type === 'central-topic') {
+                    newElement = document.createElement('div');
+                    newElement.className = 'central-topic draggable-box';
+                    newElement.innerHTML = `
+                        <div class="element-content">
+                            <div class="main-title">${content.title || 'Tema Central'}</div>
+                            ${content.desc ? `<div class="main-desc">${content.desc}</div>` : ''}
+                        </div>
+                    `;
+                } 
+                else if (type === 'branch') {
+                    newElement = document.createElement('div');
+                    newElement.className = 'branch-title draggable-box';
+                    newElement.innerHTML = `
+                        <div class="element-content">
+                            <div class="main-title">${content.title || 'Rama Principal'}</div>
+                            ${content.desc ? `<div class="main-desc">${content.desc}</div>` : ''}
+                        </div>
+                    `;
+                }
+                else if (type === 'sub-branch') {
+                    newElement = document.createElement('div');
+                    newElement.className = 'sub-branch draggable-box';
+                    newElement.innerHTML = `
+                        <div class="sub-branch-title">${content.title || 'Sub-Rama'}</div>
+                        <div class="sub-branch-desc">${content.desc || 'Descripción de la sub-rama'}</div>
+                    `;
+                }
+                
+                if (!newElement) return;
+                
+                // Posicionar elemento
+                newElement.style.left = `${x}px`;
+                newElement.style.top = `${y}px`;
+                
+                // Agregar eventos para mover
+                makeElementDraggable(newElement);
+                
+                // NUEVO: Agregar evento para editar (doble clic)
+                newElement.addEventListener('dblclick', function(e) {
+                    e.stopPropagation();
+                    openEditModal(this);
+                });
+                
+                // Agregar al contenedor
+                canvasContainer.appendChild(newElement);
+                
+                return newElement;
+            }
+            
+            function makeElementDraggable(element) {
+                let isDragging = false;
+                let startX, startY;
+                let initialLeft, initialTop;
+                
+                element.addEventListener('mousedown', startDrag);
+                
+                function startDrag(e) {
+                    e.stopPropagation();
+                    
+                    isDragging = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    
+                    initialLeft = parseInt(element.style.left) || 0;
+                    initialTop = parseInt(element.style.top) || 0;
+                    
+                    element.classList.add('dragging');
+                    
+                    document.addEventListener('mousemove', doDrag);
+                    document.addEventListener('mouseup', stopDrag);
+                }
+                
+                function doDrag(e) {
+                    if (!isDragging) return;
+                    
+                    const dx = (e.clientX - startX) / scale;
+                    const dy = (e.clientY - startY) / scale;
+                    
+                    element.style.left = `${initialLeft + dx}px`;
+                    element.style.top = `${initialTop + dy}px`;
+                }
+                
+                function stopDrag() {
+                    isDragging = false;
+                    element.classList.remove('dragging');
+                    
+                    document.removeEventListener('mousemove', doDrag);
+                    document.removeEventListener('mouseup', stopDrag);
+                }
+            }
+            
+            // ========== FUNCIONES DE EDICIÓN DE TEXTO (NUEVAS) ==========
+            function openEditModal(element) {
+                currentEditingElement = element;
+                
+                // Obtener contenido actual del elemento
+                let title = '';
+                let description = '';
+                
+                if (element.classList.contains('central-topic') || element.classList.contains('branch-title')) {
+                    const mainTitle = element.querySelector('.main-title');
+                    const mainDesc = element.querySelector('.main-desc');
+                    title = mainTitle ? mainTitle.textContent : '';
+                    description = mainDesc ? mainDesc.textContent : '';
+                } else if (element.classList.contains('sub-branch')) {
+                    const subTitle = element.querySelector('.sub-branch-title');
+                    const subDesc = element.querySelector('.sub-branch-desc');
+                    title = subTitle ? subTitle.textContent : '';
+                    description = subDesc ? subDesc.textContent : '';
+                }
+                
+                // Rellenar formulario
+                document.getElementById('editTitle').value = title;
+                document.getElementById('editDescription').value = description || '';
+                
+                // Mostrar modal
+                editModal.style.display = 'flex';
+            }
+            
+            function closeEditModal() {
+                editModal.style.display = 'none';
+                currentEditingElement = null;
+            }
+            
+            function saveElementChanges(e) {
+                e.preventDefault();
+                
+                if (!currentEditingElement) return;
+                
+                const newTitle = document.getElementById('editTitle').value;
+                const newDescription = document.getElementById('editDescription').value;
+                
+                // Actualizar elemento según su tipo
+                if (currentEditingElement.classList.contains('central-topic') || 
+                    currentEditingElement.classList.contains('branch-title')) {
+                    
+                    // Actualizar tema central o rama principal
+                    const mainTitle = currentEditingElement.querySelector('.main-title');
+                    const mainDesc = currentEditingElement.querySelector('.main-desc');
+                    
+                    if (mainTitle) mainTitle.textContent = newTitle;
+                    
+                    if (newDescription) {
+                        if (!mainDesc) {
+                            // Crear descripción si no existe
+                            const descElement = document.createElement('div');
+                            descElement.className = 'main-desc';
+                            descElement.textContent = newDescription;
+                            currentEditingElement.querySelector('.element-content').appendChild(descElement);
+                        } else {
+                            mainDesc.textContent = newDescription;
+                        }
+                    } else if (mainDesc) {
+                        // Eliminar descripción si está vacía
+                        mainDesc.remove();
+                    }
+                } 
+                else if (currentEditingElement.classList.contains('sub-branch')) {
+                    // Actualizar sub-rama
+                    const subTitle = currentEditingElement.querySelector('.sub-branch-title');
+                    const subDesc = currentEditingElement.querySelector('.sub-branch-desc');
+                    
+                    if (subTitle) subTitle.textContent = newTitle;
+                    if (subDesc) subDesc.textContent = newDescription || 'Descripción de la sub-rama';
+                }
+                
+                closeEditModal();
+            }
+            
+            // ========== FUNCIONES DE INTERFAZ ==========
+            function clearWorkspace() {
+                if (confirm('¿Estás seguro de que quieres limpiar todo el lienzo?')) {
+                    const elements = canvasContainer.querySelectorAll('.draggable-box');
+                    elements.forEach(element => element.remove());
+                }
+            }
+            
+            function showDownloadModal() {
+                downloadModal.style.display = 'flex';
+            }
+            
+            function closeDownloadModal() {
+                downloadModal.style.display = 'none';
+            }
+            
+            // ========== FUNCIÓN DE DESCARGA (SIN MODIFICAR) ==========
+            async function downloadDiagram(format) {
+                closeDownloadModal();
+                
+                // Mostrar loader
+                loader.style.display = 'flex';
+                
+                try {
+                    // Obtener todos los elementos del cuadro
+                    const elements = canvasContainer.querySelectorAll('.draggable-box');
+                    
+                    if (elements.length === 0) {
+                        alert('No hay elementos en el cuadro para descargar.');
+                        loader.style.display = 'none';
+                        return;
+                    }
+                    
+                    // Calcular los límites de todos los elementos
+                    let minX = Infinity, minY = Infinity;
+                    let maxX = -Infinity, maxY = -Infinity;
+                    
+                    elements.forEach(element => {
+                        const left = parseInt(element.style.left) || 0;
+                        const top = parseInt(element.style.top) || 0;
+                        const width = element.offsetWidth;
+                        const height = element.offsetHeight;
+                        
+                        minX = Math.min(minX, left);
+                        minY = Math.min(minY, top);
+                        maxX = Math.max(maxX, left + width);
+                        maxY = Math.max(maxY, top + height);
+                    });
+                    
+                    // Agregar márgenes
+                    const margin = 50;
+                    minX -= margin;
+                    minY -= margin;
+                    maxX += margin;
+                    maxY += margin;
+                    
+                    // Calcular dimensiones del contenido
+                    const contentWidth = maxX - minX;
+                    const contentHeight = maxY - minY;
+                    
+                    // Obtener tamaño seleccionado
+                    const sizeOption = document.getElementById('downloadSize').value;
+                    let targetWidth, targetHeight;
+                    
+                    switch(sizeOption) {
+                        case 'normal':
+                            targetWidth = 800;
+                            targetHeight = (contentHeight / contentWidth) * 800;
+                            break;
+                        case 'large':
+                            targetWidth = 1200;
+                            targetHeight = (contentHeight / contentWidth) * 1200;
+                            break;
+                        case 'xlarge':
+                            targetWidth = 2000;
+                            targetHeight = (contentHeight / contentWidth) * 2000;
+                            break;
+                    }
+                    
+                    // Asegurar que la altura no sea demasiado grande
+                    targetHeight = Math.min(targetHeight, 2000);
+                    
+                    // Crear contenedor para la captura
+                    const captureContainer = document.createElement('div');
+                    captureContainer.style.position = 'fixed';
+                    captureContainer.style.left = '-9999px';
+                    captureContainer.style.top = '0';
+                    captureContainer.style.width = `${targetWidth}px`;
+                    captureContainer.style.height = `${targetHeight}px`;
+                    captureContainer.style.backgroundColor = 'white';
+                    captureContainer.style.padding = '20px';
+                    captureContainer.style.boxSizing = 'border-box';
+                    captureContainer.style.overflow = 'hidden';
+                    
+                    // Clonar y reposicionar todos los elementos
+                    const scaleFactor = (targetWidth - 40) / contentWidth; // 40px de padding
+                    
+                    elements.forEach(element => {
+                        const clone = element.cloneNode(true);
+                        
+                        // Calcular nueva posición relativa al área de contenido
+                        const left = parseInt(element.style.left) || 0;
+                        const top = parseInt(element.style.top) || 0;
+                        
+                        const newLeft = (left - minX) * scaleFactor;
+                        const newTop = (top - minY) * scaleFactor;
+                        
+                        clone.style.position = 'absolute';
+                        clone.style.left = `${newLeft}px`;
+                        clone.style.top = `${newTop}px`;
+                        clone.style.transform = `scale(${scaleFactor})`;
+                        clone.style.transformOrigin = 'top left';
+                        clone.classList.remove('selected', 'dragging');
+                        
+                        captureContainer.appendChild(clone);
+                    });
+                    
+                    // Agregar al documento
+                    document.body.appendChild(captureContainer);
+                    
+                    // Esperar a que se renderice
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    if (format === 'png') {
+                        // Generar imagen PNG
+                        const canvas = await html2canvas(captureContainer, {
+                            scale: 2,
+                            backgroundColor: '#ffffff',
+                            useCORS: true,
+                            logging: false,
+                            width: targetWidth,
+                            height: targetHeight
+                        });
+                        
+                        const link = document.createElement('a');
+                        link.download = `cuadro-sinoptico-${Date.now()}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        
+                    } else if (format === 'pdf') {
+                        // Generar PDF
+                        const canvas = await html2canvas(captureContainer, {
+                            scale: 2,
+                            backgroundColor: '#ffffff',
+                            useCORS: true,
+                            logging: false,
+                            width: targetWidth,
+                            height: targetHeight
+                        });
+                        
+                        const imgData = canvas.toDataURL('image/png');
+                        const pdf = new jspdf.jsPDF({
+                            orientation: contentWidth > contentHeight ? 'landscape' : 'portrait',
+                            unit: 'mm',
+                            format: 'a4'
+                        });
+                        
+                        const pageWidth = pdf.internal.pageSize.getWidth();
+                        const pageHeight = pdf.internal.pageSize.getHeight();
+                        
+                        // Calcular dimensiones para que quepa en la página
+                        const imgWidth = pageWidth - 20; // 10mm de margen cada lado
+                        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                        
+                        // Centrar la imagen
+                        const x = 10;
+                        const y = imgHeight > pageHeight ? 10 : (pageHeight - imgHeight) / 2;
+                        
+                        pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+                        pdf.save(`cuadro-sinoptico-${Date.now()}.pdf`);
+                    }
+                    
+                    // Limpiar
+                    document.body.removeChild(captureContainer);
+                    
+                } catch (error) {
+                    console.error('Error al generar la imagen:', error);
+                    alert('Hubo un error al generar el documento. Por favor, intenta nuevamente.');
+                } finally {
+                    // Ocultar loader
+                    loader.style.display = 'none';
+                }
+            }
+            
+            function addExampleContent() {
+                // Solo agregar ejemplo si no hay elementos
+                if (canvasContainer.querySelector('.draggable-box')) return;
+                
+                // Crear tema central - AZUL
+                createWorkspaceElement('central-topic', {
+                    title: 'MÉTODOS Y TÉCNICAS',
+                    desc: 'Análisis y diagnóstico en mantenimiento'
+                }, 1400, 900);
+                
+                // Crear ramas principales - VERDE
+                createWorkspaceElement('branch', {
+                    title: 'MÉTODOS DE ANÁLISIS',
+                    desc: 'Técnicas para examinar problemas'
+                }, 1200, 1100);
+                
+                createWorkspaceElement('branch', {
+                    title: 'TÉCNICAS DE DIAGNÓSTICO',
+                    desc: 'Procedimientos para identificar fallas'
+                }, 1600, 1100);
+                
+                // Crear sub-ramas - BLANCO CON FRANJA
+                createWorkspaceElement('sub-branch', {
+                    title: 'Análisis de Causa Raíz',
+                    desc: 'Identifica el origen fundamental de problemas'
+                }, 1100, 1300);
+                
+                createWorkspaceElement('sub-branch', {
+                    title: 'Checklist de Verificación',
+                    desc: 'Lista sistemática para revisión completa'
+                }, 1400, 1300);
+                
+                createWorkspaceElement('sub-branch', {
+                    title: 'Diagnóstico por Síntomas',
+                    desc: 'Relaciona manifestaciones con componentes'
+                }, 1700, 1300);
+            }
+            
+            // Cerrar modal al hacer clic fuera (NUEVO)
+            editModal.addEventListener('click', function(e) {
+                if (e.target === editModal) closeEditModal();
+            });
+        });
+    </script>
+</body>
+</html>
